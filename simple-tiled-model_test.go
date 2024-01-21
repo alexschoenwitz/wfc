@@ -3,11 +3,12 @@ package wfc
 import (
 	"encoding/json"
 	// "fmt"
-	"github.com/shawnridgeway/wfc/internal/testutils"
 	"image"
 	"io/ioutil"
 	"strconv"
 	"testing"
+
+	"github.com/alexschoenwitz/wfc/internal/testutils"
 )
 
 // Parsed data supplied by user

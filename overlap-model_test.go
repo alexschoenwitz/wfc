@@ -1,9 +1,10 @@
 package wfc
 
 import (
-	"github.com/shawnridgeway/wfc/internal/testutils"
 	"image"
 	"testing"
+
+	"github.com/alexschoenwitz/wfc/internal/testutils"
 )
 
 func overlappingTest(t *testing.T, filename, snapshotFilename string, iterations int) {
