@@ -56,7 +56,6 @@ NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool) *Sim
 ```
 Accepts:
 - `data SimpleTiledData`: data structure of tiles and constraints to be used.
-	- `Unique bool`: true if the tile set contains variations of each tile.
 	- `TileSize int`: the width and height in pixels of each tile.
 	- `Tiles []Tile`: list of tiles to be used in the generation.
 		- `Name string`: identifying name of the tile.

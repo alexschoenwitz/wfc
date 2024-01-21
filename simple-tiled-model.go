@@ -15,11 +15,9 @@ type SimpleTiledModel struct {
 	Tiles      []TilePattern // List of all possible tiles as images, including inversions
 	Propagator [][][]bool    // All possible connections between tiles
 }
-type TileName string
 
 // Parsed data supplied by user
 type SimpleTiledData struct {
-	Unique    bool       // False if each tile can have variants. (Default to false?)
 	TileSize  int        // Default to 16
 	Tiles     []Tile     // List of all possible tiles, not including inversions
 	Neighbors []Neighbor // List of possible connections between tiles
@@ -41,11 +39,25 @@ type Neighbor struct {
 	RightNum int      // Default to 0
 }
 
+// Tile name
+type TileName string
+
 // Flat array of colors in a tile
 type TilePattern []color.Color
 
 // Tile inversion function type
 type Inversion func(int) int
+
+// Tile symmetries
+type TileSymmetry string
+
+const (
+	SymmetryNone               = "X"
+	SymmetryVertical           = "T"
+	SymmetryVerticalHorizontal = "I"
+	SymmetryDiagonal           = "L"
+	SymmetryDiagonalRotational = "\\"
+)
 
 /**
  * NewSimpleTiledModel
@@ -163,22 +175,10 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 			})
 		}
 
-		if data.Unique {
-			for t := 0; t < cardinality; t++ {
-				img := currentTile.Variants[t]
-				model.Tiles = append(model.Tiles, tile(func(x, y int) color.Color {
-					return img.At(x, y)
-				}))
-			}
-		} else {
-			img := currentTile.Variants[0]
-			model.Tiles = append(model.Tiles, tile(func(x, y int) color.Color {
-				return img.At(x, y)
-			}))
-
-			for t := 1; t < cardinality; t++ {
-				model.Tiles = append(model.Tiles, rotate(model.Tiles[model.totalPatterns+t-1]))
-			}
+		img := currentTile.Variants[0]
+		model.Tiles = append(model.Tiles, tile(func(x, y int) color.Color { return img.At(x, y) }))
+		for t := 1; t < cardinality; t++ {
+			model.Tiles = append(model.Tiles, rotate(model.Tiles[model.totalPatterns+t-1]))
 		}
 
 		for t := 0; t < cardinality; t++ {

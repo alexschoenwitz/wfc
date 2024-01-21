@@ -5,7 +5,6 @@ import (
 	// "fmt"
 	"image"
 	"io/ioutil"
-	"strconv"
 	"testing"
 
 	"github.com/alexschoenwitz/wfc/internal/testutils"
@@ -14,7 +13,6 @@ import (
 // Parsed data supplied by user
 type RawData struct {
 	Path      string        `json:"path"`      // Path to tiles
-	Unique    bool          `json:"unique"`    // Default to false
 	TileSize  int           `json:"tileSize"`  // Default to 16
 	Tiles     []RawTile     `json:"tiles"`     //
 	Neighbors []RawNeighbor `json:"neighbors"` //
@@ -52,23 +50,11 @@ func initiateData(dataFileName string) SimpleTiledData {
 	tiles := make([]Tile, len(rawData.Tiles))
 	for i, rt := range rawData.Tiles {
 		imgs := make([]image.Image, 0)
-		if rawData.Unique {
-			i := 1
-			for {
-				if img, err := testutils.LoadImage("internal/input/" + rawData.Path + string(rt.Name) + " " + strconv.Itoa(i) + ".png"); err == nil {
-					imgs = append(imgs, img)
-				} else {
-					break
-				}
-				i++
-			}
-		} else {
-			img, err := testutils.LoadImage("internal/input/" + rawData.Path + string(rt.Name) + ".png")
-			if err != nil {
-				panic(err)
-			}
-			imgs = append(imgs, img)
+		img, err := testutils.LoadImage("internal/input/" + rawData.Path + string(rt.Name) + ".png")
+		if err != nil {
+			panic(err)
 		}
+		imgs = append(imgs, img)
 		weight := rt.Weight
 		if weight == 0 {
 			weight = 1
@@ -79,7 +65,7 @@ func initiateData(dataFileName string) SimpleTiledData {
 	for i, rn := range rawData.Neighbors {
 		neighbors[i] = Neighbor(rn)
 	}
-	return SimpleTiledData{Unique: rawData.Unique, TileSize: rawData.TileSize, Tiles: tiles, Neighbors: neighbors}
+	return SimpleTiledData{TileSize: rawData.TileSize, Tiles: tiles, Neighbors: neighbors}
 }
 
 func simpleTiledTest(t *testing.T, dataFileName, snapshotFileName string, iterations int) {
