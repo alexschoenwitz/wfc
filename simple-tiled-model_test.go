@@ -22,17 +22,17 @@ type RawData struct {
 
 // Raw information on a tile
 type RawTile struct {
-	Name     string  `json:"name"`     // Name used to identify the tile
-	Symmetry string  `json:"symmetry"` // Default to ""
-	Weight   float64 `json:"weight"`   // Default to 1
+	Name     TileName `json:"name"`     // Name used to identify the tile
+	Symmetry string   `json:"symmetry"` // Default to ""
+	Weight   float64  `json:"weight"`   // Default to 1
 }
 
 // Information on which tiles can be neighbors
 type RawNeighbor struct {
-	Left     string `json:"left"`     // Mathces Tile.Name
-	LeftNum  int    `json:"leftNum"`  // Default to 0
-	Right    string `json:"right"`    // Mathces Tile.Name
-	RightNum int    `json:"rightNum"` // Default to 0
+	Left     TileName `json:"left"`     // Matches Tile.Name
+	LeftNum  int      `json:"leftNum"`  // Default to 0
+	Right    TileName `json:"right"`    // Matches Tile.Name
+	RightNum int      `json:"rightNum"` // Default to 0
 }
 
 func initiateData(dataFileName string) SimpleTiledData {
@@ -55,7 +55,7 @@ func initiateData(dataFileName string) SimpleTiledData {
 		if rawData.Unique {
 			i := 1
 			for {
-				if img, err := testutils.LoadImage("internal/input/" + rawData.Path + rt.Name + " " + strconv.Itoa(i) + ".png"); err == nil {
+				if img, err := testutils.LoadImage("internal/input/" + rawData.Path + string(rt.Name) + " " + strconv.Itoa(i) + ".png"); err == nil {
 					imgs = append(imgs, img)
 				} else {
 					break
@@ -63,7 +63,7 @@ func initiateData(dataFileName string) SimpleTiledData {
 				i++
 			}
 		} else {
-			img, err := testutils.LoadImage("internal/input/" + rawData.Path + rt.Name + ".png")
+			img, err := testutils.LoadImage("internal/input/" + rawData.Path + string(rt.Name) + ".png")
 			if err != nil {
 				panic(err)
 			}
@@ -75,11 +75,11 @@ func initiateData(dataFileName string) SimpleTiledData {
 		}
 		tiles[i] = Tile{Name: rt.Name, Symmetry: rt.Symmetry, Weight: weight, Variants: imgs}
 	}
-	neighboors := make([]Neighbor, len(rawData.Neighbors))
+	neighbors := make([]Neighbor, len(rawData.Neighbors))
 	for i, rn := range rawData.Neighbors {
-		neighboors[i] = Neighbor{Left: rn.Left, LeftNum: rn.LeftNum, Right: rn.Right, RightNum: rn.RightNum}
+		neighbors[i] = Neighbor(rn)
 	}
-	return SimpleTiledData{Unique: rawData.Unique, TileSize: rawData.TileSize, Tiles: tiles, Neighbors: neighboors}
+	return SimpleTiledData{Unique: rawData.Unique, TileSize: rawData.TileSize, Tiles: tiles, Neighbors: neighbors}
 }
 
 func simpleTiledTest(t *testing.T, dataFileName, snapshotFileName string, iterations int) {
