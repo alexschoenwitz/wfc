@@ -31,7 +31,7 @@ type BaseModel struct {
 	Wave                 [][][]bool     // All possible patterns (t) that could fit coordinates (x, y)
 	Changes              [][]bool       // Changes made in interation of propagation
 	Stationary           []float64      // Array of weights (by frequency) for each pattern (matches index in patterns field)
-	totalPatterns        int            // Count of patterns
+	TotalPatterns        int            // Count of patterns
 	Periodic             bool           // Output is periodic (ie tessellates)
 	Fmx, Fmy             int            // Width and height of output
 	Rng                  func() float64 // Random number generator supplied at generation time
@@ -45,7 +45,7 @@ func (baseModel *BaseModel) Observe(specificModel AppliedAlgorithm) bool {
 	min := 1000.0
 	argminx := -1
 	argminy := -1
-	distribution := make([]float64, baseModel.totalPatterns)
+	distribution := make([]float64, baseModel.TotalPatterns)
 
 	// Find the point with minimum entropy (adding a little noise for randomness)
 	for x := 0; x < baseModel.Fmx; x++ {
@@ -56,7 +56,7 @@ func (baseModel *BaseModel) Observe(specificModel AppliedAlgorithm) bool {
 
 			sum := 0.0
 
-			for t := 0; t < baseModel.totalPatterns; t++ {
+			for t := 0; t < baseModel.TotalPatterns; t++ {
 				if baseModel.Wave[x][y][t] {
 					distribution[t] = baseModel.Stationary[t]
 				} else {
@@ -70,7 +70,7 @@ func (baseModel *BaseModel) Observe(specificModel AppliedAlgorithm) bool {
 				return true // finished, unsuccessful
 			}
 
-			for t := 0; t < baseModel.totalPatterns; t++ {
+			for t := 0; t < baseModel.TotalPatterns; t++ {
 				distribution[t] /= sum
 			}
 
@@ -97,7 +97,7 @@ func (baseModel *BaseModel) Observe(specificModel AppliedAlgorithm) bool {
 		return true // finished, successful
 	}
 
-	for t := 0; t < baseModel.totalPatterns; t++ {
+	for t := 0; t < baseModel.TotalPatterns; t++ {
 		if baseModel.Wave[argminx][argminy][t] {
 			distribution[t] = baseModel.Stationary[t]
 		} else {
@@ -107,7 +107,7 @@ func (baseModel *BaseModel) Observe(specificModel AppliedAlgorithm) bool {
 
 	r := randomIndice(distribution, baseModel.Rng())
 
-	for t := 0; t < baseModel.totalPatterns; t++ {
+	for t := 0; t < baseModel.TotalPatterns; t++ {
 		baseModel.Wave[argminx][argminy][t] = (t == r)
 	}
 
@@ -185,7 +185,7 @@ func (baseModel *BaseModel) SetSeed(seed int64) {
 func (baseModel *BaseModel) ClearBase(specificModel AppliedAlgorithm) {
 	for x := 0; x < baseModel.Fmx; x++ {
 		for y := 0; y < baseModel.Fmy; y++ {
-			for t := 0; t < baseModel.totalPatterns; t++ {
+			for t := 0; t < baseModel.TotalPatterns; t++ {
 				baseModel.Wave[x][y][t] = true
 			}
 			baseModel.Changes[x][y] = false

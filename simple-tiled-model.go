@@ -165,26 +165,26 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 			}
 		}
 
-		model.totalPatterns = len(action)
-		firstOccurrence[currentTile.Name] = model.totalPatterns
+		model.TotalPatterns = len(action)
+		firstOccurrence[currentTile.Name] = model.TotalPatterns
 
 		for t := 0; t < cardinality; t++ {
 			action = append(action, []int{
-				model.totalPatterns + t,
-				model.totalPatterns + inversion1(t),
-				model.totalPatterns + inversion1(inversion1(t)),
-				model.totalPatterns + inversion1(inversion1(inversion1(t))),
-				model.totalPatterns + inversion2(t),
-				model.totalPatterns + inversion2(inversion1(t)),
-				model.totalPatterns + inversion2(inversion1(inversion1(t))),
-				model.totalPatterns + inversion2(inversion1(inversion1(inversion1(t)))),
+				model.TotalPatterns + t,
+				model.TotalPatterns + inversion1(t),
+				model.TotalPatterns + inversion1(inversion1(t)),
+				model.TotalPatterns + inversion1(inversion1(inversion1(t))),
+				model.TotalPatterns + inversion2(t),
+				model.TotalPatterns + inversion2(inversion1(t)),
+				model.TotalPatterns + inversion2(inversion1(inversion1(t))),
+				model.TotalPatterns + inversion2(inversion1(inversion1(inversion1(t)))),
 			})
 		}
 
 		img := currentTile.Variants[0]
 		model.Tiles = append(model.Tiles, tile(func(x, y int) color.Color { return img.At(x, y) }))
 		for t := 1; t < cardinality; t++ {
-			model.Tiles = append(model.Tiles, rotate(model.Tiles[model.totalPatterns+t-1]))
+			model.Tiles = append(model.Tiles, rotate(model.Tiles[model.TotalPatterns+t-1]))
 		}
 
 		for t := 0; t < cardinality; t++ {
@@ -192,14 +192,14 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 		}
 	}
 
-	model.totalPatterns = len(action)
+	model.TotalPatterns = len(action)
 	model.Propagator = make([][][]bool, 4)
 
 	for i := 0; i < 4; i++ {
-		model.Propagator[i] = make([][]bool, model.totalPatterns)
-		for t := 0; t < model.totalPatterns; t++ {
-			model.Propagator[i][t] = make([]bool, model.totalPatterns)
-			for t2 := 0; t2 < model.totalPatterns; t2++ {
+		model.Propagator[i] = make([][]bool, model.TotalPatterns)
+		for t := 0; t < model.TotalPatterns; t++ {
+			model.Propagator[i][t] = make([]bool, model.TotalPatterns)
+			for t2 := 0; t2 < model.TotalPatterns; t2++ {
 				model.Propagator[i][t][t2] = false
 			}
 		}
@@ -211,7 +211,7 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 		model.Wave[x] = make([][]bool, model.Fmy)
 		model.Changes[x] = make([]bool, model.Fmy)
 		for y := 0; y < model.Fmy; y++ {
-			model.Wave[x][y] = make([]bool, model.totalPatterns)
+			model.Wave[x][y] = make([]bool, model.TotalPatterns)
 		}
 	}
 
@@ -234,8 +234,8 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 		model.Propagator[1][action[d][2]][action[u][2]] = true
 	}
 
-	for t := 0; t < model.totalPatterns; t++ {
-		for t2 := 0; t2 < model.totalPatterns; t2++ {
+	for t := 0; t < model.TotalPatterns; t++ {
+		for t2 := 0; t2 < model.TotalPatterns; t2++ {
 			model.Propagator[2][t][t2] = model.Propagator[0][t2][t]
 			model.Propagator[3][t][t2] = model.Propagator[1][t2][t]
 		}
@@ -310,11 +310,11 @@ func (model *SimpleTiledModel) Propagate() bool {
 					continue
 				}
 
-				for t2 := 0; t2 < model.totalPatterns; t2++ {
+				for t2 := 0; t2 < model.TotalPatterns; t2++ {
 					if model.Wave[x2][y2][t2] {
 						b := false
 
-						for t1 := 0; t1 < model.totalPatterns && !b; t1++ {
+						for t1 := 0; t1 < model.TotalPatterns && !b; t1++ {
 							if model.Wave[x1][y1][t1] {
 								b = model.Propagator[d][t2][t1]
 							}
@@ -353,7 +353,7 @@ func (model *SimpleTiledModel) RenderCompleteImage() image.Image {
 		for x := 0; x < model.Fmx; x++ {
 			for yt := 0; yt < model.TileSize; yt++ {
 				for xt := 0; xt < model.TileSize; xt++ {
-					for t := 0; t < model.totalPatterns; t++ {
+					for t := 0; t < model.TotalPatterns; t++ {
 						if model.Wave[x][y][t] {
 							output[x*model.TileSize+xt][y*model.TileSize+yt] = model.Tiles[t].Pattern[yt*model.TileSize+xt]
 							break
@@ -386,11 +386,11 @@ func (model *SimpleTiledModel) RenderIncompleteImage() image.Image {
 			}
 			for yt := 0; yt < model.TileSize; yt++ {
 				for xt := 0; xt < model.TileSize; xt++ {
-					if amount == model.totalPatterns {
+					if amount == model.TotalPatterns {
 						output[x*model.TileSize+xt][y*model.TileSize+yt] = color.RGBA{127, 127, 127, 255}
 					} else {
 						sR, sG, sB, sA := 0.0, 0.0, 0.0, 0.0
-						for t := 0; t < model.totalPatterns; t++ {
+						for t := 0; t < model.TotalPatterns; t++ {
 							if model.Wave[x][y][t] {
 								r, g, b, a := model.Tiles[t].Pattern[yt*model.TileSize+xt].RGBA()
 								sR += float64(r) * model.Stationary[t]

@@ -172,12 +172,12 @@ func NewOverlappingModel(img image.Image, n, width, height int, periodicInput, p
 		}
 	}
 
-	model.totalPatterns = len(weightsKeys)
+	model.TotalPatterns = len(weightsKeys)
 
 	// Store the patterns and cooresponding weights (stationary)
-	model.Patterns = make([]Pattern, model.totalPatterns)
-	model.Stationary = make([]float64, model.totalPatterns)
-	model.Propagator = make([][][][]int, model.totalPatterns)
+	model.Patterns = make([]Pattern, model.TotalPatterns)
+	model.Stationary = make([]float64, model.TotalPatterns)
+	model.Propagator = make([][][][]int, model.TotalPatterns)
 	for i, wk := range weightsKeys {
 		model.Patterns[i] = patternFromIndex(wk)
 		model.Stationary[i] = float64(weights[wk])
@@ -190,9 +190,9 @@ func NewOverlappingModel(img image.Image, n, width, height int, periodicInput, p
 		model.Wave[x] = make([][]bool, model.Fmy)
 		model.Changes[x] = make([]bool, model.Fmy)
 		for y := 0; y < model.Fmy; y++ {
-			model.Wave[x][y] = make([]bool, model.totalPatterns)
+			model.Wave[x][y] = make([]bool, model.TotalPatterns)
 			model.Changes[x][y] = false
-			for t := 0; t < model.totalPatterns; t++ {
+			for t := 0; t < model.TotalPatterns; t++ {
 				model.Wave[x][y][t] = true
 			}
 		}
@@ -230,14 +230,14 @@ func NewOverlappingModel(img image.Image, n, width, height int, periodicInput, p
 	}
 
 	// Build table of which patterns can exist next to another
-	for t := 0; t < model.totalPatterns; t++ {
+	for t := 0; t < model.TotalPatterns; t++ {
 		model.Propagator[t] = make([][][]int, 2*n-1)
 		for x := 0; x < 2*n-1; x++ {
 			model.Propagator[t][x] = make([][]int, 2*n-1)
 			for y := 0; y < 2*n-1; y++ {
 				list := make([]int, 0)
 
-				for t2 := 0; t2 < model.totalPatterns; t2++ {
+				for t2 := 0; t2 < model.TotalPatterns; t2++ {
 					if agrees(model.Patterns[t], model.Patterns[t2], x-n+1, y-n+1) {
 						list = append(list, t2)
 					}
@@ -299,7 +299,7 @@ func (model *OverlappingModel) Propagate() bool {
 
 						allowed := model.Wave[sx][sy]
 
-						for t := 0; t < model.totalPatterns; t++ {
+						for t := 0; t < model.TotalPatterns; t++ {
 							if !allowed[t] {
 								continue
 							}
@@ -330,9 +330,9 @@ func (model *OverlappingModel) Propagate() bool {
  */
 func (model *OverlappingModel) Clear() {
 	model.ClearBase(model)
-	if model.Ground != -1 && model.totalPatterns > 1 {
+	if model.Ground != -1 && model.TotalPatterns > 1 {
 		for x := 0; x < model.Fmx; x++ {
-			for t := 0; t < model.totalPatterns; t++ {
+			for t := 0; t < model.TotalPatterns; t++ {
 				if t != model.Ground {
 					model.Wave[x][model.Fmy-1][t] = false
 				}
@@ -362,7 +362,7 @@ func (model *OverlappingModel) RenderCompleteImage() image.Image {
 	}
 	for y := 0; y < model.Fmy; y++ {
 		for x := 0; x < model.Fmx; x++ {
-			for t := 0; t < model.totalPatterns; t++ {
+			for t := 0; t < model.TotalPatterns; t++ {
 				if model.Wave[x][y][t] {
 					output[x][y] = model.Colors[model.Patterns[t][0]]
 				}
@@ -401,7 +401,7 @@ func (model *OverlappingModel) RenderIncompleteImage() image.Image {
 						continue
 					}
 
-					for t := 0; t < model.totalPatterns; t++ {
+					for t := 0; t < model.TotalPatterns; t++ {
 						if model.Wave[sx][sy][t] {
 							contributorNumber++
 							r, g, b, a := model.Colors[model.Patterns[t][dx+dy*model.N]].RGBA()
