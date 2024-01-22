@@ -87,19 +87,19 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 	firstOccurrence := make(map[TileName]int)
 	action := make([][]int, 0)
 
-	tile := func(transformer func(x, y int) color.Color) tileWithRotation {
+	tile := func(transformer func(x, y int) color.Color) TilePattern {
 		result := make(TilePattern, model.TileSize*model.TileSize)
 		for y := 0; y < model.TileSize; y++ {
 			for x := 0; x < model.TileSize; x++ {
 				result[x+y*model.TileSize] = transformer(x, y)
 			}
 		}
-		return tileWithRotation{Pattern: result}
+		return result
 	}
 
-	rotate := func(p tileWithRotation) tileWithRotation {
+	rotate := func(p TilePattern) TilePattern {
 		return tile(func(x, y int) color.Color {
-			return p.Pattern[model.TileSize-1-y+x*model.TileSize]
+			return p[model.TileSize-1-y+x*model.TileSize]
 		})
 	}
 
@@ -182,9 +182,19 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 		}
 
 		img := currentTile.Variants[0]
-		model.Tiles = append(model.Tiles, tile(func(x, y int) color.Color { return img.At(x, y) }))
+		model.Tiles = append(model.Tiles, tileWithRotation{
+			Name:     currentTile.Name,
+			Rotation: 0,
+			Pattern: tile(func(x, y int) color.Color {
+				return img.At(x, y)
+			})})
 		for t := 1; t < cardinality; t++ {
-			model.Tiles = append(model.Tiles, rotate(model.Tiles[model.TotalPatterns+t-1]))
+			model.Tiles = append(model.Tiles,
+				tileWithRotation{
+					Name:     currentTile.Name,
+					Rotation: t,
+					Pattern:  rotate(model.Tiles[model.TotalPatterns+t-1].Pattern)},
+			)
 		}
 
 		for t := 0; t < cardinality; t++ {
