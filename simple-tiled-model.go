@@ -10,10 +10,10 @@ import (
  * SimpleTiledModel Type
  */
 type SimpleTiledModel struct {
-	*BaseModel               // Underlying model of generic Wave Function Collapse algorithm
-	TileSize   int           // The size in pixels of the length and height of each tile
-	Tiles      []TilePattern // List of all possible tiles as images, including inversions
-	Propagator [][][]bool    // All possible connections between tiles
+	*BaseModel                    // Underlying model of generic Wave Function Collapse algorithm
+	TileSize   int                // The size in pixels of the length and height of each tile
+	Tiles      []tileWithRotation // List of all possible tiles as images, including inversions
+	Propagator [][][]bool         // All possible connections between tiles
 }
 
 // Parsed data supplied by user
@@ -29,6 +29,12 @@ type Tile struct {
 	Symmetry string        // Default to ""
 	Weight   float64       // Default to 1
 	Variants []image.Image // Preloaded image for the tile
+}
+
+type tileWithRotation struct {
+	Name     TileName
+	Rotation int
+	Pattern  TilePattern
 }
 
 // Information on which tiles can be neighbors
@@ -75,25 +81,25 @@ func NewSimpleTiledModel(data SimpleTiledData, width, height int, periodic bool)
 	model.Fmy = height
 	model.Periodic = periodic
 	model.TileSize = data.TileSize
-	model.Tiles = make([]TilePattern, 0)
+	model.Tiles = make([]tileWithRotation, 0)
 	model.Stationary = make([]float64, 0)
 
 	firstOccurrence := make(map[TileName]int)
 	action := make([][]int, 0)
 
-	tile := func(transformer func(x, y int) color.Color) TilePattern {
+	tile := func(transformer func(x, y int) color.Color) tileWithRotation {
 		result := make(TilePattern, model.TileSize*model.TileSize)
 		for y := 0; y < model.TileSize; y++ {
 			for x := 0; x < model.TileSize; x++ {
 				result[x+y*model.TileSize] = transformer(x, y)
 			}
 		}
-		return result
+		return tileWithRotation{Pattern: result}
 	}
 
-	rotate := func(p TilePattern) TilePattern {
+	rotate := func(p tileWithRotation) tileWithRotation {
 		return tile(func(x, y int) color.Color {
-			return p[model.TileSize-1-y+x*model.TileSize]
+			return p.Pattern[model.TileSize-1-y+x*model.TileSize]
 		})
 	}
 
@@ -349,7 +355,7 @@ func (model *SimpleTiledModel) RenderCompleteImage() image.Image {
 				for xt := 0; xt < model.TileSize; xt++ {
 					for t := 0; t < model.totalPatterns; t++ {
 						if model.Wave[x][y][t] {
-							output[x*model.TileSize+xt][y*model.TileSize+yt] = model.Tiles[t][yt*model.TileSize+xt]
+							output[x*model.TileSize+xt][y*model.TileSize+yt] = model.Tiles[t].Pattern[yt*model.TileSize+xt]
 							break
 						}
 					}
@@ -386,7 +392,7 @@ func (model *SimpleTiledModel) RenderIncompleteImage() image.Image {
 						sR, sG, sB, sA := 0.0, 0.0, 0.0, 0.0
 						for t := 0; t < model.totalPatterns; t++ {
 							if model.Wave[x][y][t] {
-								r, g, b, a := model.Tiles[t][yt*model.TileSize+xt].RGBA()
+								r, g, b, a := model.Tiles[t].Pattern[yt*model.TileSize+xt].RGBA()
 								sR += float64(r) * model.Stationary[t]
 								sG += float64(g) * model.Stationary[t]
 								sB += float64(b) * model.Stationary[t]
